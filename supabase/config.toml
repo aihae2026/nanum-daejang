@@ -1,0 +1,21 @@
+# Supabase CLI 설정 — 2026-09-08 승희
+# 왜 있나 — AI 검수(functions/judge.js)가 구글로 나가는 호출을 서울 리전에 고정하려고.
+#   Cloudflare Pages Function 은 실행 위치를 고를 수 없어(9/7 실측: Smart Placement 켜도 HKG)
+#   Supabase Edge Function 을 릴레이로 두고 요청 헤더 `x-region: ap-northeast-2` 로 서울에 못박는다.
+# 배포:  npx supabase functions deploy where-am-i gemini-relay --project-ref <your-project-ref>
+#   ⚠️ where-am-i 는 리전 확인용 점검 함수다 — 점검할 때만 배포하고 운영에는 배포하지 말 것(운영 배포는 gemini-relay 만).
+#      공개 키만으로 누구나 호출할 수 있어, 외부인이 기관 Gemini 키로 요금·한도를 소진할 수 있다(관리자 가이드 6.1).
+# 키:    npx supabase secrets set GEMINI_API_KEY=… RELAY_KEYS=<publishable key> --project-ref …
+# project_id — 자리표시자다. 각 기관이 자기 Supabase 프로젝트 ref(20자, 대시보드 Project Settings 에서 확인)나
+#   알아보기 쉬운 이름으로 바꾼다. 이 값은 CLI 가 로컬에서 쓰는 이름이라 꺾쇠(<>) 없이 영문·숫자·하이픈만 쓴다.
+#   실제 배포 대상은 위 배포 명령의 --project-ref 로 정해진다.
+project_id = "your-project-ref"
+
+# ⚠️ verify_jwt = false 인 이유 — 우리 앱 키가 `sb_publishable_…`(JWT 아님)이라 게이트웨이 JWT 검사를 못 지난다.
+#   대신 함수 안에서 apikey 헤더가 RELAY_KEYS 에 있는지 직접 확인한다 (index.ts 참조).
+[functions.gemini-relay]
+verify_jwt = false
+
+# where-am-i — 점검용. 운영에는 배포하지 말 것(위 배포 주석 참조)
+[functions.where-am-i]
+verify_jwt = false

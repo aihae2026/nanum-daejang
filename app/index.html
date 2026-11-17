@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>나눔대장</title>
+<!-- 본선 개발 작업본: 예선 단일 HTML을 담당별 파일로 분리 (2026-08-28). 로드 순서 바꾸지 말 것 -->
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="role-staff">
+
+<!-- 데모 역할 전환 바는 뺐다 (2026-09-12 선미) — 실서비스뿐이다. DB 가 붙기 전 잠깐 '데모' 로 판단돼 버튼이 떴다 사라지고,
+     붙은 뒤에도 빈 띠(40px)가 남아 상단바가 그 아래에 붙었다. 역할은 로그인·링크가 정한다(role-staff/donor/org). -->
+<div class="app-shell">
+  <aside class="sidebar sidebar--staff" id="sideStaff"></aside>
+  <aside class="sidebar sidebar--admin" id="sideAdmin"></aside>
+  <div class="nav-scrim" onclick="toggleNav(false)"></div>
+  <div class="main">
+    <div class="topbar">
+      <button class="navbtn menu-toggle" onclick="toggleNav()" title="메뉴 열기">&#9776; 메뉴</button>
+      <button class="navbtn" id="navBack" onclick="navBack()" title="뒤로 (Alt+&#8592;)">&#8592; 뒤로</button>
+      <button class="navbtn" id="navFwd" onclick="navForwardGo()" title="다음 (Alt+&#8594;)">다음 &#8594;</button>
+      <div>
+        <div class="crumb" id="crumb"></div>
+        <h1 id="viewTitle"></h1>
+      </div>
+      <div class="spacer"></div>
+      <span id="authBox"></span>
+      <button class="navbtn" onclick="openOnboard()" title="안내 다시 보기">&#10067; 안내</button>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="phone-stage">
+  <div class="phone">
+    <div class="scr">
+      <div class="notch"></div>
+      <div class="ph-top"><div class="brand" id="phoneBrand">나눔대장</div><div class="small" id="phoneSub" style="opacity:.9"></div></div>
+      <div class="ph-body" id="phoneBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="modalWrap"></div>
+<div id="viewerWrap"></div>
+
+
+<!-- Supabase 접속: 외부 라이브러리 없이 fetch 만 쓴다 (유진 검증 2026-08-28)
+     접속 설정: config.example.js 를 복사해 config.local.js 를 만들면 실제 DB에 붙는다.
+     없으면 아래 onerror 가 조용히 넘어가고 데모 데이터로 뜬다 (파일 없어도 화면은 항상 돈다) -->
+<script src="config.local.js" onerror="console.info('[DB] config.local.js 없음 (배포본에서는 정상)')"></script>
+<script>window.__cfgLocal = (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG && SUPABASE_CONFIG.url);</script>
+<!-- 배포본용: 서버 함수가 환경변수로 설정을 내려준다 (functions/config.js · 유진 2026-09-01)
+     ⚠️ 주소는 /config 다 — Pages Functions 는 파일명에서 .js 를 뗀다(judge.js → /judge 와 같다)
+     ★ 순서 중요 — config.local.js 가 먼저다. 로컬 설정이 있으면 그쪽이 이긴다(덮어쓰지 않는다).
+       그래서 각자 PC 설정을 아무도 바꿀 필요가 없다. -->
+<script src="/config" onerror="console.info('[DB] /config 를 못 받았습니다 (로컬 실행이면 정상)')"></script>
+<!-- ★ 어느 문으로 붙었는지 기록만 한다. "데모다" 라고 단정하는 것은 db.js 의 reportDbSource 뿐이다
+     (2026-09-03 · 문이 둘인데 한쪽만 보고 "데모" 라고 찍던 것을 고쳤다 — 선미 페어) -->
+<script>window.__cfgFrom = window.__cfgLocal ? 'config.local.js'
+  : ((typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG && SUPABASE_CONFIG.url) ? '/config (서버 환경변수)' : null);</script>
+
+<!-- 로드 순서 중요: common.js(규칙·렌더) → db.js(데이터) → api.js(AI검수 호출) → 화면 2개 → 초기 렌더
+     api.js 는 common.js 의 FILES·AI_SIM_NOTICE 를, rules-compare.js 는 COL·won 을 쓴다.
+     화면(screen-staff.js)은 그 둘을 쓰므로 화면보다 먼저 와야 한다 -->
+<script src="common.js"></script>
+<script src="db.js"></script>
+<script src="api.js"></script>
+<script src="rules-compare.js"></script>
+<!-- pdf-form.js: 신청서 PDF 생성. 무거운 pdf-lib·fontkit(assets/vendor)은 여기서 싣지 않고 제출 순간에 지연 로드한다 -->
+<script src="pdf-form.js"></script>
+<script src="screen-donor.js"></script>
+<script src="screen-staff.js"></script>
+<script>
+/* 초기 렌더 — Supabase에서 먼저 읽어보고, 되면 그 데이터로 / 안 되면 데모 데이터로 그린다.
+   화면 코드는 이 차이를 모른다 (DB.cases 모양이 같기 때문) */
+setBodyRole(DB.role);
+CFG_SOURCE = window.__cfgFrom;      /* 어느 문으로 붙었는지 — 결론 한 줄에 함께 찍는다 */
+/* 담당자 세션 복원 (2026-09-07) — 만료 임박이면 갱신하고, 5분마다 다시 본다. 후원자(링크)는 세션이 없다. */
+authLoad();
+authEnsure().then(function(){
+  startAuthRefresh();
+  /* ★ 로그인돼 있으면 **부팅마다** staff 행을 다시 본다 (2026-09-10 연수)
+       전에는 staffOk 가 false 일 때만 봤다. 그러면 역할·상태가 로그인 순간의 값으로 굳어,
+       관리자가 누군가의 권한을 바꿔도 **그 사람이 로그아웃했다 들어오기 전까지 반영되지 않았다.**
+       비활성 처리도 마찬가지 — 내보내려고 disabled 로 바꿔도 세션이 살아 있었다.
+       계정 관리 화면을 만들어 놓고 그 변경이 안 먹는 것은 앞뒤가 안 맞는다.
+     ⚠️ 빈 배열로 강등되지 않게 하는 것은 authLookupStaff 안에서 막는다(그쪽 주석 참조). */
+  if (authUser()) return authLookupStaff();
+}).then(function(){ return loadCasesFromSupabase(); }).then(function(){
+  /* 지난 AI 판정을 화면에 되살린다 — 새로고침해도 판정이 남아 API를 다시 부르지 않는다 */
+  restoreAllSavedJudgments();
+  /* 주소에 ?t=<토큰> 이 있으면 그 링크에 화면을 묶는다 (건·역할·본인확인).
+     ★ cases 를 읽은 뒤에 부른다 — 링크가 가리키는 건이 먼저 있어야 한다. */
+  return enterByLinkToken();
+}).then(function(){
+  /* 담당자는 새로고침 전 화면으로 되돌아간다 (2026-09-10 승희) — 링크(?t=)로 들어왔으면 아무것도 안 한다 */
+  if (typeof navRestoreSaved === 'function') navRestoreSaved();
+  /* 상단 'Supabase 연결됨 · N건' 칩은 뺐다 (2026-09-11 선미) — 담당자에게 개발 정보다. DB 미연결은 로그인 벽·데모 표시가 따로 말한다 */
+  render();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "nanum-daejang-app",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "//": "의존성 0 (2026-09-06). functions/judge.js 가 @google/genai SDK 를 쓰던 것을 REST(fetch) 로 바꿨다 — 배포본에 node_modules 가 없어 함수가 켜지지도 못하고 HTML 502 가 났기 때문이다. 부품이 없으면 배달이 실패할 수 없다.",
+  "dependencies": {}
+}

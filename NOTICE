@@ -1,0 +1,72 @@
+나눔대장 (Nanum Daejang)
+Copyright 2026 사회복지법인 어린이재단
+
+이 저장소의 코드는 Apache License 2.0(LICENSE 파일)으로,
+문서·프롬프트는 CC BY 4.0 으로 공개합니다. 적용 범위는 README.md 의 '라이선스 범위' 절을 보세요.
+초록우산 로고·BI 는 재단의 상표이며 위 라이선스에 포함되지 않습니다(Apache-2.0 제6조).
+
+-------------------------------------------------------------------------------
+이 저장소에 함께 들어 있는 제3자 구성요소
+(각 구성요소는 아래 적은 자기 라이선스를 따릅니다. 이 저장소의 라이선스로 바뀌지 않습니다.)
+-------------------------------------------------------------------------------
+
+1. pdf-lib 1.17.1
+   위치: app/assets/vendor/pdf-lib.min.js
+   라이선스: MIT
+   저작권: Copyright (c) 2019 Andrew Dillon
+   출처: https://github.com/Hopding/pdf-lib (npm 패키지 pdf-lib@1.17.1 의 LICENSE.md)
+
+   pdf-lib.min.js 는 아래 구성요소를 한 파일로 묶은 배포본입니다
+   (pdf-lib@1.17.1 package.json 의 dependencies 기준).
+   - tslib — 파일 머리 주석: "Copyright (c) Microsoft Corporation. All rights reserved.
+     Licensed under the Apache License, Version 2.0"
+   - pako — 라이선스 (MIT AND Zlib),
+     Copyright (C) 2014-2017 by Vitaly Puzrin and Andrei Tuputcyn (pako@1.0.11 LICENSE)
+   - @pdf-lib/standard-fonts — 라이선스 MIT (package.json 표기, 저자 Andrew Dillon)
+   - @pdf-lib/upng — 라이선스 MIT, Copyright (c) 2017 Photopea (@pdf-lib/upng@1.0.1 LICENSE)
+
+2. @pdf-lib/fontkit 1.1.1
+   위치: app/assets/vendor/fontkit.umd.min.js
+   라이선스: MIT (package.json 표기 · npm 패키지에 LICENSE 파일은 없음)
+   저자: Andrew Dillon (package.json author), Devon Govett (package.json contributors)
+   원본: foliojs/fontkit 의 포크 — 원본 LICENSE: "Copyright (c) 2014-present Devon Govett"
+   출처: https://github.com/Hopding/fontkit
+   묶인 구성요소: pako (위 1번과 같은 라이선스)
+
+3. NDJ Sans (나눔고딕 3.021 서브셋)
+   위치: app/assets/fonts/NDJSans-Regular.ttf
+   라이선스: SIL Open Font License 1.1 (원문: app/assets/fonts/OFL.txt)
+   저작권: Copyright (c) 2010, NHN Corporation (http://www.nhncorp.com),
+           with Reserved Font Name Nanum, Naver Nanum, NanumGothic, Naver
+           NanumGothic, NanumMyeongjo, Naver NanumMyeongjo, NanumBrush, Naver
+           NanumBrush, NanumPen, Naver NanumPen.
+   수정 사항: 한글 음절·일부 기호만 남긴 서브셋. OFL 의 예약 글꼴명을 피하려고
+              글꼴 이름을 'NDJ Sans' 로 바꿈 (app/assets/fonts/README.md).
+   원본: https://hangeul.naver.com
+
+MIT 라이선스 원문(pdf-lib·fontkit 공통 조건)은 app/assets/vendor/README.md 에 있습니다.
+
+-------------------------------------------------------------------------------
+시연용 샘플 사진 (app/assets/demo/) — Wikimedia Commons
+-------------------------------------------------------------------------------
+아래 두 장은 원본 사진을 잘라 내고 화질을 손질한 뒤, 하단에 출처 줄과 날짜 문구를
+넣어 고친 것입니다. 고친 사진도 원본과 같은 CC BY-SA 라이선스를 따릅니다
+(저장소의 Apache-2.0·CC BY 4.0 적용 대상이 아닙니다).
+
+- app/assets/demo/A2_물품사진.jpg
+  원본: "Boxes of Nissin Cup Noodles on pallets at Costco, SSF ECR" — 저작자 BrokenSphere
+  https://commons.wikimedia.org/wiki/File:Boxes_of_Nissin_Cup_Noodles_on_pallets_at_Costco,_SSF_ECR.JPG
+  라이선스: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
+
+- app/assets/demo/A4_배분물품사진.jpg
+  원본: "ダンボール 2007 (838636654)" — 저작자 Satomi Abe (Flickr: https://www.flickr.com/photos/abex/838636654/)
+  https://commons.wikimedia.org/wiki/File:%E3%83%80%E3%83%B3%E3%83%9C%E3%83%BC%E3%83%AB_2007_(838636654).jpg
+  라이선스: CC BY-SA 2.0 — https://creativecommons.org/licenses/by-sa/2.0/
+
+사진 속 상품의 상표는 각 권리자의 것이며, 샘플은 실제 거래·실제 기관과 무관합니다.
+
+-------------------------------------------------------------------------------
+배포물에 포함되지 않는 개발·검사용 도구
+-------------------------------------------------------------------------------
+- jsdom — 라이선스 MIT, Copyright (c) 2010 Elijah Insua.
+  자동 검사(app/*.mjs)에서만 쓰며 저장소·배포본에 들어 있지 않습니다.

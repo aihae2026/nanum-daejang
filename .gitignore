@@ -1,0 +1,13 @@
+# 키·계정 정보가 들어가는 로컬 전용 파일 — 절대 커밋하지 않는다
+.env
+.env.*
+!.env.example
+app/config.local.js
+**/staff.local.json
+*.local.*
+
+# 로컬 실행 부산물
+node_modules/
+.wrangler/
+app/_pdf-sample-*.pdf
+.DS_Store

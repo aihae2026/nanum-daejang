@@ -1,0 +1,690 @@
+/* ════════════════════════════════════════════════════════════
+   styles.css — 화면 스타일 전체 (예선 프로토타입에서 분리)
+   담당: 화면 담당(선미·연수)이 주로 고침. 큰 구조 변경은 사전 공유
+   ════════════════════════════════════════════════════════════ */
+:root{
+  /* 초록우산 공식 BI 팔레트 (2026 CI 가이드 정확값 · 주색4·보조색4·강조색2)
+     활용비율: 주색 7 : 보조색 3, 강조색은 10% 이하 */
+  --g-primary:#009465;   --g-primary-d:#007963;  --g-deep:#005B48;      /* 340C · 335C · 568C */
+  --g-light:#69BD83;     --g-pale:#A4D6C1;        --g-mint:#00ACA7;      /* 346C · 7464C · 326C */
+  --g-olive:#B6AC40;                                                     /* 7765C 보조 올리브 */
+  --accent-pink:#E5006A; --accent-gold:#E8C94E;                          /* 213C · 강조 골드 */
+  --cream:#F5F2E9;       --cream-2:#F0EDE3;                              /* Cool gray 1C */
+  --ink:#1c2b26; --muted:#5c6b64; --line:#e4e7e5; --line-2:#eef1ef;
+  --bg:#f6f8f7; --white:#fff;
+  --danger:#d92d20; --warn:#dc8a00; --ok:#009465; --info:#00ACA7;
+  --navy:#0f172a; --navy-2:#1e293b;
+  --radius:14px; --radius-s:10px;
+  --shadow:0 1px 3px rgba(0,60,40,.06),0 6px 20px rgba(0,60,40,.05);
+  --shadow-lg:0 12px 40px rgba(0,60,40,.14);
+}
+/* ★ 글자 크기 전체 +2px (2026-09-12 선미). 본문 14→16 · 라벨 12→14 · 힌트 11.5→13.5 · 카드 제목 15→17.
+     처음 340px 폰 목업 안에 그리며 눌렸던 크기가 PC 까지 따라와 네이버 등 일반 웹(본문 15~16px)보다 한참 작았다.
+     여백·칸 높이는 그대로 두었다 — 시안(신규 접수 4칸 가로줄 · 사이드바)으로 보고 +2 로 정했다.
+     화면 JS 의 인라인 font-size 14곳도 같은 날 같이 올렸다(common · screen-donor · screen-staff). */
+*{box-sizing:border-box;margin:0;padding:0}
+/* ⚠️ 당겨서 새로고침(pull-to-refresh)을 막는다 (2026-09-04 연수 · 할일-후원자화면-모바일-20260904.md 1번)
+   모바일은 화면을 아래로 쓱 당기기만 해도 새로고침이 된다 — **후원자가 실수를 안 해도 일어난다.**
+   그 한 번에 입력값 · 서명 이미지 · **아직 안 올라간 첨부(blob)** · 통과한 본인확인이 전부 사라진다.
+   첨부는 제출 버튼을 눌러야 올라간다(screen-donor.js uploadDonorFiles) — 그전까지 브라우저 안에만 있다.
+   ★ beforeunload 로는 못 막는다 — iOS Safari 는 사용자 상호작용이 없으면 무시하는 경우가 많고
+     당겨서 새로고침은 그 조건에 안 걸리기 쉽다. 경고는 보조 수단이지 1순위가 아니다.
+   ⚠️ iOS 버전에 따라 갈릴 수 있다 — **실기기 확인이 남아 있다.** */
+html,body{height:100%;overscroll-behavior-y:contain}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+a{color:inherit;text-decoration:none}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}
+
+/* 역할 토글바 CSS 는 뺐다 (2026-09-12 선미) — index.html 에서 바 자체를 걷었다 */
+
+/* ===== 앱 셸 ===== */
+.app-shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}   /* 역할 바(40px)가 없어져 맨 위부터 (2026-09-12) */
+.sidebar{display:none;color:#dff1ea;padding:18px 14px;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar--staff{background:linear-gradient(180deg,var(--g-deep),#004a3a)}
+.sidebar--admin{background:linear-gradient(180deg,var(--navy-2),var(--navy));color:#e2e8f0}
+body.role-staff .sidebar--staff{display:flex}
+body.role-admin .sidebar--admin{display:flex}
+body.role-donor .app-shell,body.role-org .app-shell{display:none}
+body.role-donor .phone-stage,body.role-org .phone-stage{display:flex}
+.phone-stage{display:none;justify-content:center;padding:34px 20px 60px;gap:24px;flex-wrap:wrap}
+.side-brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px;font-weight:800;color:#fff;font-size:18px}
+.side-brand .tile{width:30px;height:30px;border-radius:8px;background:#fff;display:grid;place-items:center;flex:none;--mark-1:var(--g-deep);--mark-2:var(--g-primary)}
+.side-brand .tile .mark{width:22px;height:22px;display:block}
+.sidebar--admin .side-brand .tile{--mark-1:var(--navy);--mark-2:var(--g-primary)}
+.side-brand small{display:block;font-size:12.5px;font-weight:600;opacity:.7;letter-spacing:.3px}
+.nav-group{margin-top:12px}
+.nav-group .lbl{font-size:12.5px;letter-spacing:1px;text-transform:uppercase;color:#8dc3b1;padding:8px 10px 4px;font-weight:700}
+.sidebar--admin .nav-group .lbl{color:#94a3b8}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:9px;color:#cfe8df;font-size:15.5px;font-weight:500;transition:.14s;width:100%;text-align:left}
+.sidebar--admin .nav-item{color:#cbd5e1}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.16);color:#fff;font-weight:700}
+.sidebar--admin .nav-item.active{background:rgba(232,201,78,.18);color:var(--accent-gold)}
+.nav-item .ic{width:20px;text-align:center;font-size:17px}
+.nav-item .cnt{margin-left:auto;background:var(--accent-pink);color:#fff;font-size:12.5px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 5px}
+.side-foot{margin-top:auto;padding:12px 10px 4px;border-top:1px solid rgba(255,255,255,.12);font-size:14px;color:#9fd0bf}
+.sidebar--admin .side-foot{color:#94a3b8}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{height:60px;background:var(--white);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 26px;position:sticky;top:0;z-index:20}
+.topbar .crumb{font-size:14.5px;color:var(--muted)}
+.topbar h1{font-size:19px;font-weight:800;letter-spacing:-.4px}
+.topbar .spacer{flex:1}
+.navbtn{padding:6px 11px;border-radius:9px;background:var(--bg);border:1px solid var(--line);font-size:14.5px;font-weight:700;color:var(--muted)}
+.menu-toggle{display:none}
+.nav-scrim{display:none}
+.navbtn:hover:not(:disabled){border-color:var(--g-primary);color:var(--g-primary)}
+.navbtn:disabled{opacity:.4;cursor:not-allowed}
+.content{padding:24px 26px 60px;overflow-y:auto;flex:1;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===== 공통 컴포넌트 (연수) ===== */
+.page-head{margin-bottom:20px}
+.page-head h2{font-size:24px;font-weight:800;letter-spacing:-.6px}
+.page-head p{color:var(--muted);margin-top:3px;font-size:15.5px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-h{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card-h h3{font-size:17px;font-weight:800}
+.card-h .tag{font-size:13px;color:var(--muted);font-weight:600}
+.card-b{padding:18px 20px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.stat{background:var(--white);border:1px solid var(--line);border-top:3px solid var(--acc,var(--g-primary));border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .16s ease,box-shadow .16s ease}
+.stat[onclick]:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.stat .k{font-size:14.5px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:7px}
+.stat .v{font-size:32px;font-weight:800;letter-spacing:-1px;margin-top:8px;line-height:1;color:var(--ink)}
+.stat .d{font-size:14px;margin-top:8px;font-weight:600}
+.stat .d.up{color:var(--g-primary)}.stat .d.warn{color:var(--warn)}.stat .d.dg{color:var(--danger)}
+.stat .sic{position:absolute;right:14px;top:14px;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:22px}
+/* 히어로 KPI — 주색 그라데이션 지배(가이드 7:3 원칙) */
+.stat.hero{background:linear-gradient(135deg,var(--g-primary),var(--g-deep));border-color:transparent;color:#fff}
+.stat.hero .k{color:rgba(255,255,255,.86)}
+.stat.hero .v{color:#fff}
+.stat.hero .d,.stat.hero .d span{color:rgba(255,255,255,.85)!important}
+.stat.hero .sic{background:rgba(255,255,255,.2)!important}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:13.5px;font-weight:700;line-height:1.6}
+.pill .pd{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:#e3f6ee;color:#00794f}.pill.warn{background:#fdf1dc;color:#a4670a}
+.pill.dg{background:#fdecea;color:#c0281c}.pill.info{background:#e2f6f5;color:#00807b}
+.pill.neu{background:#eef1ef;color:#59685f}.pill.pink{background:#fce4ef;color:#b30055}
+.pill.gold{background:#fbf3d4;color:#8a7412}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:13.5px;color:var(--muted);font-weight:700;padding:11px 14px;border-bottom:1px solid var(--line);letter-spacing:.2px;background:#fbfcfb}
+td{padding:12px 14px;border-bottom:1px solid var(--line-2);font-size:15px;vertical-align:middle}
+tbody tr:hover{background:#f7faf9}
+tbody tr:last-child td{border-bottom:none}
+.tb-item{font-weight:700}.tb-sub{font-size:13.5px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;font-weight:700;font-size:15px;transition:.14s;border:1px solid transparent}
+.btn.pri{background:var(--g-primary);color:#fff}
+.btn.pri:hover:not(:disabled){background:var(--g-primary-d)}
+.btn.ghost{background:var(--white);border-color:var(--line);color:var(--ink)}
+.btn.ghost:hover:not(:disabled){border-color:var(--g-primary);color:var(--g-primary)}
+.btn.soft{background:#e9f7f1;color:var(--g-primary-d)}
+.btn.soft:hover:not(:disabled){background:#daf0e6}
+.btn.sm{padding:6px 12px;font-size:14px;border-radius:8px}
+.btn.pink{background:var(--accent-pink);color:#fff}
+.btn.danger{background:#fdecea;color:var(--danger)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.flow{display:flex;gap:0;background:var(--white);border:1px solid var(--line);border-top:3px solid var(--g-primary);border-radius:var(--radius);padding:4px;box-shadow:var(--shadow);overflow-x:auto}
+.flow .step{flex:1;min-width:100px;display:flex;flex-direction:column;gap:2px;padding:8px 12px;border-radius:9px;position:relative;text-align:left;transition:background .14s ease}
+.flow .step:hover{background:#eef8f2}
+.flow .step .st{font-size:13px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
+.flow .step .sv{font-size:19px;font-weight:800;line-height:1.15;color:var(--g-deep)}
+.flow .step:not(:last-child)::after{content:"\203A";position:absolute;right:-3px;top:50%;transform:translateY(-50%);color:var(--line);font-size:20px}
+.todo-item{display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1px solid var(--line-2)}
+.todo-item:last-child{border:none}
+.todo-ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex:0 0 auto}
+.todo-item b{font-size:15.5px}.todo-item p{font-size:14px;color:var(--muted)}
+.todo-item .cta{margin-left:auto}
+/* ── 흐름 바 — 후원건 목록 상단 (2026-09-08 연수) ─────────────────
+   ★ 왜 .seg 를 안 쓰나 — 탭 셋은 **한 프로세스의 세 구간**이지 나란한 선택지가 아니다.
+     ①②③ 과 화살표는 장식이 아니라 caseStage 가 실제로 가르는 순서다.
+   ★ 전체는 구간이 아니라 **합계**라 오른쪽에 따로 세운다 — 세 구간을 더하면 그 수가 나와야 한다.
+     전에는 [전체 41][후원접수검수 26][배분검수 5] 가 나란히 놓여 26+5≠41 로 보였다. */
+.flowbar{display:flex;align-items:stretch;gap:0;background:var(--line-2);border:1px solid var(--line);border-radius:var(--radius);padding:5px}
+.flowbar .fb{flex:1 1 0;display:flex;flex-direction:column;gap:9px;align-items:flex-start;text-align:left;padding:16px 18px;border-radius:11px;background:transparent}
+.flowbar .fb:hover{background:rgba(255,255,255,.55)}
+.flowbar .fb.on{background:var(--white);box-shadow:var(--shadow)}
+.flowbar .fb-t{display:flex;align-items:center;gap:9px}
+.flowbar .fb-n{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:13.5px;font-weight:800;background:#dfe4e1;color:var(--muted);flex-shrink:0}
+.flowbar .fb.on .fb-n{background:var(--g-primary-d);color:#fff}
+.flowbar .fb-name{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.flowbar .fb-v{display:flex;align-items:baseline;gap:6px}
+.flowbar .fb-c{font-size:30px;font-weight:800;letter-spacing:-.9px;color:var(--muted)}
+.flowbar .fb.on .fb-c{color:var(--ink)}
+.flowbar .fb-u{font-size:14.5px;color:var(--muted)}
+.flowbar .fb-a{display:flex;align-items:center;padding:0 2px;color:#b9c2bc;flex-shrink:0}
+/* 합계 — 구간이 아니라 **세 구간을 더한 값**이라 선으로 가른다 (2026-09-08 선미) */
+.flowbar .fb-sum{display:flex;align-items:center;padding-left:14px;margin-left:8px;border-left:1px solid var(--line);flex-shrink:0}
+.list-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+/* 검색 — 화면에 보이는 칸으로만 찾는다 (2026-09-08 연수) */
+.lsearch-group{display:flex;align-items:center;gap:8px;flex:1 1 300px;max-width:430px}
+.lsearch{position:relative;display:flex;align-items:center;flex:1 1 auto}
+.lgo{border:1.5px solid var(--line);border-radius:9px;padding:9px 16px;font-size:15px;font-weight:700;color:var(--ink);background:var(--white);white-space:nowrap}
+.lgo:hover{border-color:var(--g-primary);color:var(--g-primary-d)}
+/* [내가 접수한 건만] 토글 (2026-09-10) — 켜짐/꺼짐이 색과 점으로 한눈에 */
+.lmine{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--line);border-radius:9px;padding:9px 14px;font-size:15px;font-weight:600;color:var(--muted);background:var(--white);white-space:nowrap}
+.lmine .lm-dot{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none}
+.lmine:hover{border-color:var(--g-primary);color:var(--g-primary-d)}
+.lmine.on{border-color:var(--g-primary);background:color-mix(in srgb, var(--g-pale) 35%, var(--white));color:var(--g-primary-d);font-weight:700}
+.lmine.on .lm-dot{background:var(--g-primary)}
+.lsearch .li{position:absolute;left:11px;display:flex;color:var(--muted);pointer-events:none}
+.lsearch input{width:100%;padding:9px 34px 9px 34px;border:1.5px solid var(--line);border-radius:9px;font-size:15px;outline:none;transition:.14s;background:var(--white)}
+.lsearch input:focus{border-color:var(--g-primary);box-shadow:0 0 0 3px rgba(0,154,110,.1)}
+.lsearch .lx{position:absolute;right:7px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;color:var(--muted)}
+.lsearch .lx:hover{background:var(--line-2);color:var(--ink)}
+.total-chip{display:flex;align-items:baseline;gap:7px;padding:8px 15px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-s)}
+.total-chip.on{border-color:var(--g-primary);box-shadow:var(--shadow)}
+.total-chip .tl{font-size:13.5px;font-weight:700;color:var(--muted);letter-spacing:.2px}
+.total-chip .tn{font-size:21px;font-weight:800;letter-spacing:-.4px}
+.total-chip .tu{font-size:14px;color:var(--muted)}
+/* 좁으면 세로로 쌓고 화살표를 아래로 돌린다 — 한 줄에 셋을 욱여넣지 않는다 */
+@media(max-width:860px){
+  .flowbar{flex-direction:column}
+  .flowbar .fb-sum{padding-left:0;margin-left:0;border-left:none;border-top:1px solid var(--line);margin-top:5px;padding-top:9px;justify-content:flex-end}
+  .flowbar .fb{flex-direction:row;align-items:center;gap:11px;min-height:56px;padding:12px 14px}
+  .flowbar .fb-name{flex:1}
+  .flowbar .fb-c{font-size:22px;letter-spacing:-.5px}
+  .flowbar .fb-a{justify-content:center;padding:1px 0}
+  .flowbar .fb-a svg{transform:rotate(90deg)}
+}
+.seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{padding:6px 14px;border-radius:7px;font-size:14.5px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--white);color:var(--g-primary-d);box-shadow:var(--shadow);font-weight:700}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:14.5px;font-weight:700;margin-bottom:6px}
+.field label .req{color:var(--accent-pink)}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-size:15px;outline:none;transition:.14s;background:var(--white)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g-primary);box-shadow:0 0 0 3px rgba(0,154,110,.1)}
+.hint{font-size:13.5px;color:var(--muted);margin-top:4px}
+.form-dense .field{margin-bottom:10px}
+.form-dense .field label{font-size:14px;margin-bottom:4px}
+.form-dense .field input,.form-dense .field select{padding:8px 10px}
+.banner{border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;font-size:15px}
+.banner .bi{font-size:20px;flex:0 0 auto;margin-top:1px}
+.banner b{font-weight:800}
+.banner.ok{background:#e6f7ef;color:#046045;border:1px solid #b7e6d1}
+.banner.warn{background:#fdf5e3;color:#8a5a00;border:1px solid #f2dea8}
+.banner.dg{background:#fdeeec;color:#a02214;border:1px solid #f5c9c2}
+.banner.info{background:#e4f6f5;color:#00726d;border:1px solid #b3e5e2}
+.ai-chip{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(120deg,#e8f7f0,#e2f6f5);color:var(--g-primary-d);font-weight:700;font-size:13.5px;padding:4px 11px;border-radius:20px;border:1px solid #c7ebdd}
+.chk{width:19px;height:19px;border-radius:6px;border:1.5px solid var(--line);display:inline-grid;place-items:center;font-size:14px;flex:0 0 auto}
+.chk.on{background:var(--g-primary);border-color:var(--g-primary);color:#fff}
+.chk.miss{border-color:var(--danger);color:var(--danger)}
+.chk.unc{border-color:var(--warn);color:var(--warn)}
+.chk.res{border-color:#6366f1;color:#6366f1}
+.doc-row{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--line-2)}
+.doc-row:last-child{border:none}
+.doc-row .di{width:34px;height:34px;border-radius:9px;background:var(--cream);display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+.doc-row b{font-size:15px;display:block}.doc-row small{font-size:13.5px;color:var(--muted)}
+.doc-row .st{margin-left:auto}
+.phone{width:340px;background:#0c1512;border-radius:36px;padding:12px;box-shadow:var(--shadow-lg)}
+.phone .scr{background:var(--white);border-radius:26px;overflow:hidden;height:640px;display:flex;flex-direction:column}
+.phone .notch{height:26px;display:flex;justify-content:center}
+.phone .notch::after{content:"";width:110px;height:20px;background:#0c1512;border-radius:0 0 14px 14px}
+.ph-top{background:var(--g-primary);color:#fff;padding:14px 18px}
+body.role-org .ph-top{background:var(--g-mint)}
+body.role-donor .ph-top{background:var(--g-deep)}
+.ph-top .brand{font-weight:800;font-size:15px;display:flex;align-items:center;gap:7px;--mark-1:#fff;--mark-2:var(--g-pale)}
+.ph-top .brand .mark{width:18px;height:18px;display:block;flex:none}
+.ph-body{padding:18px;overflow-y:auto;flex:1}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.split .col{padding:18px 20px}
+.split .col:first-child{border-right:1px solid var(--line-2);background:#fbfcfb}
+.mono{font-family:ui-monospace,'SF Mono',monospace;font-size:14px;white-space:pre-wrap;color:#33443d;background:var(--cream);padding:14px;border-radius:10px;line-height:1.7}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line-2);font-size:15px}
+.kv:last-child{border:none}.kv b{font-weight:700}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+
+/* ===== v5 신규: 검수 화면 전용 (연수 토큰 위에 얹음) ===== */
+.layer-badge{font-size:13px;border-radius:6px;padding:2px 7px;font-weight:800;white-space:nowrap}
+.layer-f{background:#e0e7ff;color:#3730a3}
+.layer-a{background:#d1fae5;color:#065f46}
+.layer-s{background:#fde7f3;color:#9d174d}
+/* ★ .basis-tag 는 지웠다 (2026-09-05) — 쓰던 두 곳(후원자 첨부 카드의 지침 근거 ·
+   항목 카드의 기한 배지)이 함께 사라졌다. 되살릴 일이 있으면 커밋 이력에서 찾을 것. */
+.item-card{background:var(--white);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:var(--radius-s);padding:14px 16px;margin-bottom:12px}
+.item-card.st-done{border-left-color:var(--g-primary)}
+.item-card.st-unc{border-left-color:var(--warn);background:#fffdf5}
+.item-card.st-miss{border-left-color:var(--danger);background:#fffaf9}
+.item-card.st-res{border-left-color:#6366f1;background:#f8f8ff}
+.item-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px}
+.item-head b{font-size:15.5px}
+.item-meta{font-size:14px;color:var(--muted);line-height:1.6}
+
+/* ── 건 상세 진행바 — 6칸이 곧 탭 (2026-09-11 선미 · 시안 C · 설계 10-planning/case-detail-steps-design-20260911.md)
+   done = 지난 단계(연녹) · now = 지금 단계(초록 테두리 · caseStateKey 가 정한다) · todo = 남은 단계(흐림)
+   aria-selected = 지금 **보고 있는** 단계 — now 와 다를 수 있다(지난 단계를 눌러 볼 때).
+   번호 원은 승희의 .sec-n 을 그대로 쓴다(9e8189e) — 후원자 신청서·신규 접수와 같은 모양. */
+.stepbar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px}
+.stepbar .sb{flex:1 1 140px;min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;
+  padding:10px 12px;border:1px solid var(--line);border-radius:var(--radius-s);background:var(--white);font:inherit;color:var(--ink)}
+.stepbar .sb:hover{border-color:var(--g-pale)}
+.stepbar .sb:focus-visible{outline:2px solid var(--g-primary);outline-offset:2px}
+.stepbar .sb-t{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;line-height:1.3}
+.stepbar .sb-c{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stepbar .sb.done{background:#eaf6f1;border-color:transparent}
+.stepbar .sb.done .sec-n{background:var(--g-deep)}
+.stepbar .sb.todo{opacity:.6}
+.stepbar .sb.todo .sec-n{background:#c5cfca}
+.stepbar .sb.now{border-color:var(--g-primary);border-width:2px;padding:9px 11px}
+.stepbar .sb[aria-selected="true"]{box-shadow:0 0 0 3px rgba(0,148,101,.18)}
+/* 기관 아코디언 — ④⑤⑥ 단계에서 기관마다 하나. 한 곳이면 open · 여럿이면 미처리 있는 곳만 open */
+.org-acc{border:1px solid var(--line);border-radius:var(--radius-s);background:var(--white);margin-bottom:10px}
+.org-acc[open]{border-color:var(--g-pale)}
+.org-acc>summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:700;font-size:15.5px}
+.org-acc>summary::-webkit-details-marker{display:none}
+.org-acc>summary:focus-visible{outline:2px solid var(--g-primary);outline-offset:-2px}
+.org-acc>summary .oa-n{font-size:14px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.org-acc>summary .oa-tog{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:13.5px;font-weight:600}   /* 알약 옆 (2026-09-12 선미) — 오른쪽 끝이 아니라 */
+.org-acc>summary .oa-tog-t::before{content:'펼치기'}          /* 누르면 열린다는 표식 (2026-09-12 선미) */
+.org-acc[open]>summary .oa-tog-t::before{content:'접기'}
+.org-acc>summary .oa-chev{color:var(--muted);font-size:14px;transition:transform .18s}
+.org-acc[open]>summary .oa-chev{transform:rotate(90deg)}
+.org-acc>.oa-b{padding:12px 16px 4px;border-top:1px solid var(--line-2)}
+/* 이전 제출 PDF — 최신 한 장만 펴 두고 나머지는 접는다 (2026-09-12 선미 · #315) */
+.pdf-old{flex:1 1 100%;margin-top:6px}
+.pdf-old>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;
+  color:var(--muted);font-size:13px;font-weight:600;padding:3px 2px}
+.pdf-old>summary::-webkit-details-marker{display:none}
+.pdf-old>summary:focus-visible{outline:2px solid var(--g-primary);outline-offset:2px;border-radius:4px}
+.pdf-old>summary .oa-chev{font-size:14px;transition:transform .18s}
+.pdf-old[open]>summary .oa-chev{transform:rotate(90deg)}
+.pdf-old>.po-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 0 2px}
+.pdf-old>.po-b>p{flex:1 1 100%;margin:0 0 2px}
+/* 수취 요약표 — [수취 현황] 탭이 하던 집계가 단계 머리로 들어왔다 */
+.recv-sum{width:auto;min-width:min(100%,360px)}                /* 화면 끝까지 늘리지 않는다 — 수가 셋뿐 (2026-09-12 선미) */
+.recv-sum th,.recv-sum td{padding:8px 18px}
+.recv-sum th:first-child,.recv-sum td:first-child{padding-left:10px;min-width:140px}
+.recv-sum .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.org-acc>summary .oa-chev{transition:none}}
+.amount-card{background:var(--white);border:1.5px solid var(--warn);border-radius:var(--radius-s);padding:14px 16px;margin-top:10px}
+.amount-title{font-weight:800;font-size:15.5px;margin-bottom:10px}
+.amount-grid{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.amount-box{flex:1;min-width:150px;background:#fdf5e3;border-radius:8px;padding:10px 12px;text-align:center}
+.amount-label{font-size:14px;color:#8a5a00;margin-bottom:4px}
+.amount-val{font-size:21px;font-weight:800}
+.amount-vs{font-size:20px;color:#a4670a;font-weight:700}
+.amount-calc{margin-top:10px;font-size:15px;background:#fdf1dc;border-radius:8px;padding:9px 12px;color:#8a5a00}
+.res-line{margin-top:10px;font-size:14.5px;color:#3730a3;background:#eef2ff;border-radius:8px;padding:7px 10px}
+.res-keep{color:var(--muted)}
+.gate-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.gate-note{font-size:14.5px;color:var(--muted);margin-top:8px}
+.gate-block{font-size:14.5px;font-weight:700;color:var(--danger)}
+.cmp-head{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}
+.cmp-head .cmp{flex:1;min-width:250px}
+.cmp-x{display:grid;place-items:center;font-size:22px;color:var(--muted);font-weight:800;min-width:24px}
+.case-switch{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.case-switch button.on{background:var(--g-primary);color:#fff;border-color:var(--g-primary)}
+.demo-sub{font-size:14.5px;color:#8a5a00;background:#fdf5e3;border:1px solid #f2dea8;border-radius:9px;padding:7px 12px;display:inline-block}
+.filled{background:#e3f6ee!important;border-color:#b7e6d1!important}
+.srcbadge{font-size:12.5px;font-weight:700;border-radius:6px;padding:2px 6px;background:#eef1ef;color:#59685f;margin-left:6px}
+.srcbadge.o{background:#e2f6f5;color:#00807b}
+/* ── 첨부 뷰어 ── */
+.vw-back{position:fixed;inset:0;background:rgba(12,21,18,.72);display:flex;align-items:center;justify-content:center;padding:24px;z-index:60}
+.vw-box{background:var(--white);border-radius:18px;width:min(920px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden}
+.vw-head{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1.5px solid var(--line);flex-wrap:wrap}
+.vw-head b{font-size:16px}
+.vw-body{flex:1;overflow:auto;background:#f2f5f3;display:flex;align-items:center;justify-content:center;padding:16px;min-height:320px}
+/* 신청서 원문 팝업 — 종이 신청서 양식 모양 (vw-body의 flex 중앙정렬 위에서 문서 카드로) */
+.intake-doc{background:#fff;max-width:560px;width:100%;margin:0 auto;padding:26px 30px;border-radius:8px;box-shadow:var(--shadow-sm);align-self:flex-start}
+.intake-doc h4{text-align:center;font-size:19px;font-weight:800;letter-spacing:8px;margin:2px 0 4px}
+.intake-doc .doc-sub{text-align:center;font-size:13.5px;color:var(--ink-3);margin-bottom:14px}
+.intake-doc table{width:100%;border-collapse:collapse;font-size:14.5px;margin-bottom:10px}
+.intake-doc th,.intake-doc td{border:1px solid #c9cfc9;padding:7px 9px;text-align:left;vertical-align:middle}
+.intake-doc th{background:#f4f6f4;font-weight:700;white-space:nowrap;width:92px}
+.intake-doc td.num{text-align:right;font-variant-numeric:tabular-nums}
+.intake-doc .sign{margin-top:12px;text-align:right;font-size:14.5px}
+.vw-body img{max-width:100%;max-height:70vh;border-radius:10px;box-shadow:var(--shadow-sm);background:#fff}
+.vw-body iframe{width:100%;height:70vh;border:0;border-radius:10px;background:#fff}
+.vw-foot{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1.5px solid var(--line);flex-wrap:wrap}
+.vw-stub{text-align:center;color:var(--ink-soft);font-size:15px;line-height:1.7;padding:36px 16px}
+.vw-stub .ic{font-size:42px;display:block;margin-bottom:10px}
+.file-chip{display:inline-flex;align-items:center;gap:6px;background:#eef1ef;border:1.5px solid var(--line);border-radius:9px;padding:5px 9px;font-size:14px;font-weight:700;cursor:pointer;margin:0 6px 6px 0}
+.file-chip:hover{border-color:var(--g-primary);color:var(--g-deep)}
+.file-chip.demo{opacity:.72;font-weight:600}
+.spin{width:16px;height:16px;border:2px solid #c7ebdd;border-top-color:var(--g-primary);border-radius:50%;display:inline-block;animation:sp .7s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.conf-bar{height:7px;border-radius:4px;background:var(--line-2);overflow:hidden;min-width:90px;flex:1}
+.conf-bar i{display:block;height:100%;background:var(--g-primary)}
+.conf-bar.low i{background:var(--danger)}
+/* ===== v5 Phase 3~5: 폰 화면 · 미리보기 · 관리자 슬롯 · 토스트 · 온보딩 ===== */
+.ph-body .page-t{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px}
+.ph-body .page-d{font-size:14px;color:var(--muted);margin-bottom:14px}
+.ph-body .field{margin-bottom:11px}
+.ph-body .field label{font-size:14px;margin-bottom:4px}
+.ph-body .field input,.ph-body .field select,.ph-body .field textarea{padding:8px 10px;font-size:14.5px}
+.ph-body .banner{font-size:14px;padding:11px 13px}
+.ph-body .card-b{padding:14px 15px}
+.ph-body .card-h{padding:12px 15px}
+.ph-btn{width:100%;justify-content:center;padding:11px;border-radius:10px;font-weight:700;font-size:15.5px;margin-top:4px}
+.simbadge{display:inline-flex;align-items:center;gap:5px;background:#fdf1dc;color:#a4670a;border-radius:20px;padding:3px 10px;font-weight:700;font-size:13px;margin-bottom:12px}
+.acct-btn{display:block;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:9px;background:var(--white)}
+.acct-btn:hover{border-color:var(--g-primary)}
+.acct-btn b{font-size:15px;display:block;margin-bottom:3px}
+.lock-box{text-align:center;padding:22px 14px}
+.lock-box .lk{font-size:40px;margin-bottom:10px}
+.open-row{border:1px solid var(--line);border-radius:11px;padding:12px 13px;margin-bottom:10px;background:var(--white)}
+.open-row b{font-size:15px;display:block;margin-bottom:4px}
+.preview-wrap{border:2px dashed var(--warn);border-radius:var(--radius);padding:18px;background:#fffdf5}
+.preview-stage{display:flex;justify-content:center;padding:14px 0}
+.preview-wrap .ph-top{background:var(--g-deep)}
+.preview-wrap.pv-org .ph-top{background:var(--g-mint)}
+
+/* ── 섹션 머리 — 번호 원 + 제목 (2026-09-11 선미 · 신규 접수 ①②③) ─────────────
+   ★ 번호 원 자체(.sec-n)는 **여기서 정의하지 않는다** — 같은 날 승희가 후원자 신청서용으로
+     파일 아래쪽(9e8189e)에 이미 만들었고, 담당자 화면도 그것을 그대로 쓴다.
+     같은 모양을 두 곳에 적으면 갈린다. 크기를 바꿔야 하면 **그쪽 한 줄**을 고친다.
+   글자 ①②③ 은 쓰지 않는다 — 낭독기가 읽는 방식이 제각각이고 글꼴에 따라 안 보이기도 한다
+   (screen-staff.js secN 이 aria-hidden 으로 감추고 제목만 읽히게 한다).
+   ★ .card-h 는 이미 display:flex·align-items:center 라 번호를 형제로 넣기만 하면 세로 가운데가 맞는다 —
+     .card-h h3 를 건드리지 않는다. 그 규칙은 화면 40여 곳이 함께 쓴다.
+   .sec-h 는 이 세 머리만 살짝 눌러 준다(연한 바탕) — 카드 안 소제목(.sub-h)과 위계를 가르기 위해서다. */
+.sec-h{background:var(--bg)}
+.sec-h h3{font-size:18px}
+/* 카드 **안**의 소제목 — 섹션(.sec-h)보다 한 단 낮다. 번호를 달지 않는다 */
+.sub-h{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800;letter-spacing:.2px;
+  color:var(--muted);text-transform:none;margin-bottom:10px}
+
+/* ── 칸 안 미리보기 (2026-09-11 선미 · 신규 접수 ② 안) ─────────────────────────
+   ⚠️ 폰 목업(.phone)을 **쓰지 않는다.** 아래 두 미디어쿼리가 실 DB(body:not(.demo))와 폰에서
+     .scr 의 640px 스크롤 상자를 풀어 버리기 때문이다 — 그대로 쓰면 신청서가 통째로 펼쳐진다.
+     그래서 높이를 여기서 직접 잡는다. 어느 화면에서도 ③ 발송이 아래로 밀리지 않는다.
+   ⚠️ 폰(≤600px)에서는 이 상자가 아예 안 그려진다 — 전체화면 미리보기로 간다
+     (screen-staff.js toggleSendPreview · 손가락 스크롤이 상자와 페이지 사이에서 걸리는 것을 피한다).
+   min-height:0 이 있어야 flex 자식이 줄어들면서 안쪽이 스크롤된다(없으면 상자가 내용만큼 늘어난다). */
+.pv-inline{display:flex;flex-direction:column;max-height:min(640px,70vh);background:var(--white);
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.pv-inline .ph-top{background:var(--g-deep)}
+.pv-inline .pv-scroll{flex:1;min-height:0;overflow-y:auto}
+
+/* ── 툴팁 — data-tip 한 줄로 붙는다 (2026-09-11 선미) ───────────────────────────
+   ⚠️ 마우스오버가 없는 터치 기기에서는 뜨지 않는다. 툴팁에만 있는 정보를 두지 않는다 —
+     읽지 못해도 버튼 이름만으로 무엇을 하는지 알 수 있어야 한다. 낭독기용으로 aria-label 을 같이 단다.
+   ★ 오른쪽 정렬(right:0)로 연다 — 이 툴팁을 쓰는 [＋ 신규생성] 이 화면 오른쪽 위 모서리라
+     왼쪽 정렬이면 툴팁이 화면 밖으로 잘린다. */
+.tip{position:relative;display:inline-block}
+.tip>button:disabled{pointer-events:none}   /* 잠긴 버튼 위에서도 감싸는 .tip 이 마우스오버를 받아 툴팁이 뜬다 (2026-09-12) */
+.tip::after{content:attr(data-tip);position:absolute;z-index:60;top:calc(100% + 8px);right:0;
+  width:max-content;max-width:320px;padding:8px 11px;border-radius:var(--radius-s);word-break:keep-all;   /* 한 문장은 한 줄로 · 글자 단위로 안 끊는다 (2026-09-12 선미) */
+  background:var(--ink);color:#fff;font-size:14px;font-weight:600;line-height:1.5;
+  text-align:left;white-space:normal;box-shadow:var(--shadow-lg);
+  opacity:0;visibility:hidden;transition:opacity .12s}
+.tip:hover::after,.tip:focus-visible::after{opacity:1;visibility:visible}
+.slot{border:2px dashed var(--g-mint);border-radius:var(--radius);padding:16px 18px;background:#f4fcfb;margin-bottom:16px}
+.slot.fixed{border:2px solid var(--navy-2);background:#f8fafc}
+.slot-h{font-weight:800;font-size:15.5px;margin-bottom:10px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.slot-tag{font-size:13px;font-weight:700;border-radius:6px;padding:2px 8px;background:#e2e8f0;color:#334155}
+.slot.fixed .slot-tag{background:var(--navy-2);color:#fff}
+.prin{display:flex;gap:9px;align-items:flex-start;padding:7px 0;font-size:15px}
+.prin .pn{width:20px;height:20px;border-radius:6px;background:var(--navy-2);color:#fff;font-size:13px;font-weight:800;display:grid;place-items:center;flex:0 0 auto}
+.layer2{border-left:4px solid var(--g-primary);padding-left:13px;margin-bottom:16px}
+.layer2.org{border-left-color:var(--accent-gold)}
+.layer2 h4{font-size:15.5px;font-weight:800;margin-bottom:3px}
+.layer2 p{font-size:14px;color:var(--muted);margin-bottom:9px}
+.stub-box{border:1.5px dashed var(--line);border-radius:11px;padding:16px;text-align:center;color:var(--muted);font-size:14.5px;background:#fbfcfb}
+.toast-wrap{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;width:min(600px,92vw)}
+.toast{background:var(--navy);color:#e2e8f0;border-radius:13px;padding:13px 16px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:11px;font-size:15px;flex-wrap:wrap}
+.toast b{color:#fff;font-weight:700}
+.toast .tbtn{background:var(--g-primary);color:#fff;border-radius:8px;padding:7px 13px;font-weight:700;font-size:14.5px}
+.toast .tclose{color:#94a3b8;font-size:14px;margin-left:auto}
+.toast .tcap{width:100%;font-size:13px;color:#94a3b8}
+.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:90;display:grid;place-items:center;padding:20px}
+.modal{background:var(--white);border-radius:18px;max-width:620px;width:100%;box-shadow:var(--shadow-lg);padding:26px 28px;max-height:88vh;overflow-y:auto}
+.modal h2{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+.ob-step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed var(--line-2)}
+.ob-step:last-of-type{border-bottom:none}
+.ob-step .n{width:25px;height:25px;border-radius:8px;background:#e3f6ee;color:var(--g-primary-d);font-weight:800;display:grid;place-items:center;flex:0 0 auto;font-size:14px}
+.ob-step b{font-size:15.5px}.ob-step p{font-size:14.5px;color:var(--muted)}
+@media(max-width:1100px){
+.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.app-shell{grid-template-columns:1fr}
+/* 사이드바 = 왼쪽 서랍(드로어). ☰ 메뉴로 열고, 배경 탭·화면 이동 시 닫힌다 — 모바일에서도 모든 메뉴 접근 가능 */
+.sidebar{position:fixed;left:0;top:0;bottom:0;height:100dvh;width:min(280px,82vw);z-index:70;transform:translateX(-105%);transition:transform .22s ease;box-shadow:4px 0 24px rgba(0,0,0,.28)}
+body.nav-open .sidebar{transform:none}
+.menu-toggle{display:inline-flex!important;background:var(--g-deep);color:#fff;border-color:var(--g-deep)}
+body.nav-open .nav-scrim{display:block;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:65}
+.topbar{height:auto;min-height:52px;flex-wrap:wrap;padding:8px 12px;gap:6px}
+.navbtn{white-space:nowrap;padding:6px 9px}
+.topbar h1{font-size:17px}
+.topbar .pill{display:none}
+}
+
+/* ── 실기기(폰)에서는 폰 목업을 벗긴다 (2026-09-04 연수 · 할일 문서 2번) ──
+   후원자 화면은 데스크톱 페이지 안에 그린 **340px 폰 목업**이다 — 검은 베젤과 노치까지 CSS 로 그린다.
+   ⚠️ 그런데 진짜 폰으로 링크를 열면 **화면 안에 또 폰이 그려진다.**
+     390px 아이폰 안에 340px 프레임이 노치를 달고 앉고, 내용은 640px 고정 박스에 갇힌다
+     (.scr 이 overflow:hidden 이라 폰 안에서 또 스크롤된다).
+   ★ 없앨 것이 아니라 **실기기에서만 벗긴다** — 시연에서는 그 목업이 그대로 있어야 한다.
+   ★ 1100px 이 아니라 여기서 가르는 이유 — 1100px 은 태블릿까지 걸리는데 태블릿은 목업이 있어도 읽힌다.
+     폰만 벗긴다. (340px 프레임 + 좌우 20px 이 390px 안에 '맞아 버려서' 넘치지도 않는다.
+      넘쳤으면 진작 눈에 띄었을 것이다 — 그래서 여태 안 보였다.)
+   📌 0-A: 심사위원이 담당자 화면에서 링크를 발급해 직접 연다. 폰으로 열면 여기서 바로 걸린다. */
+/* ── 홈 갈래 둘 (2026-09-05 선미) — 홈은 나열하지 않는다. 여기서 하는 일은 고르는 것뿐 ── */
+/* 2026-09-12 저녁 선미 — "배치는 맞는데 너무 없어 보인다". 위에 붙이지 않고 본문 세로 가운데에 앉힌다
+   (역할바 40 + 상단바 60 + 본문 여백 84 를 뺀 높이). 갈래엔 아이콘. (흐름 한 줄·초록 띠·상태 숫자 줄은 넣었다가 뺐다 — 저녁 선미) 여전히 건은 나열하지 않는다. */
+.home{display:flex;flex-direction:column;justify-content:center;min-height:calc(100vh - 60px - 84px);gap:28px}
+.home-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;--mark-1:var(--g-deep);--mark-2:var(--g-primary)}
+.home-hero .mark-row{display:flex;align-items:center;gap:16px}
+.home-hero .mark{width:64px;height:64px;display:block}
+.home-hero .wm{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.home-hero .tag{font-size:16.5px;color:var(--muted);margin:0;max-width:44ch}
+.home-gates{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;width:100%;max-width:760px;margin:0 auto}
+.home-gate .ic{width:44px;height:44px;border-radius:50%;background:color-mix(in srgb, var(--g-pale) 40%, var(--white));color:var(--g-deep);display:grid;place-items:center;margin-bottom:8px}
+.home-gate .ic svg{width:24px;height:24px;display:block}
+.home-gate{display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  padding:30px 26px;cursor:pointer;text-align:left;font:inherit;min-height:150px;
+  transition:border-color .15s,box-shadow .15s,transform .15s}
+.home-gate:hover{border-color:var(--g-primary);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.home-gate .t{font-size:22px;font-weight:800;color:var(--ink)}
+.home-gate .d{font-size:15px;color:var(--muted);line-height:1.5}
+.home-gate .s{margin-top:auto;padding-top:12px;font-size:14.5px;color:var(--ink-soft)}
+.home-gate .s b{color:var(--g-primary-d);font-size:17px}
+@media(max-width:600px){.home-gates{grid-template-columns:1fr;gap:10px}
+  .home-gate{min-height:0;padding:20px}
+  .home{min-height:0;gap:20px;padding-top:10px}.home-hero .mark{width:48px;height:48px}.home-hero .wm{font-size:26px}.home-hero .tag{font-size:14.5px}}
+
+/* ★ 실서비스에서는 폰 목업 테두리를 그리지 않는다 (2026-09-05 선미)
+   심사위원·후원자는 접수 링크를 **PC 새 탭**에 붙여넣어 연다(viewSend 안내 동선이 그렇게 말한다).
+   그때 340px 폭·640px 높이의 **안쪽 스크롤 상자**에 신청서 전체가 갇혀 손이 걸린다.
+   목업은 데모(역할 전환으로 상대 화면을 곁눈질할 때)에서만 뜻이 있다 → body.demo 에서만.
+   ⚠️ 600px 이하는 건드리지 않는다 — 아래 미디어쿼리가 이미 같은 일을 한다.
+   ★ 폭 420px → 960px (2026-09-12 선미). 테두리를 벗긴 뒤에도 폰 폭 그대로 남아 PC 에서 좁은 세로 카드로 보였다.
+     칸이 전부 한 열이라 넓히면 입력칸만 같이 길어진다 — 시안으로 보고 960 으로 정했다.
+     신규 접수의 미리보기(.pv-inline)는 .phone 을 안 쓰므로 이 값과 무관하다. */
+@media(min-width:601px){
+  body:not(.demo) .phone-stage{padding:26px 16px 60px}
+  body:not(.demo) .phone{width:100%;max-width:960px;background:none;border-radius:0;padding:0;box-shadow:none}
+  body:not(.demo) .phone .notch{display:none}
+  body:not(.demo) .phone .scr{height:auto;border-radius:var(--radius);overflow:visible;box-shadow:var(--shadow)}
+  body:not(.demo) .ph-body{overflow:visible}
+}
+
+@media(max-width:600px){
+  .phone-stage{padding:0;gap:0}
+  .phone{width:100%;background:none;border-radius:0;padding:0;box-shadow:none}
+  .phone .notch{display:none}
+  /* 안쪽 스크롤 상자를 푼다 — 문서가 그대로 스크롤돼야 손이 안 걸린다 */
+  .phone .scr{height:auto;min-height:100dvh;border-radius:0;overflow:visible}
+  .ph-body{overflow:visible}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   [위계 정리 ①] 마크업은 그대로 두고 무게만 조정한다 (2026-09-03 연수)
+
+   왜 — 담당자 검수화면 하나에 배너가 11개 뜬다(warn 9 · info 5 · ok 1 · dg 1).
+     네 종류가 전부 같은 무게다(채운 배경 + 테두리 + 18px 아이콘 + 13px 본문).
+     색만 다르고 크기가 같으니 열한 개가 같은 목소리로 말한다 —
+     **다 중요하면 아무것도 중요하지 않다.**
+     조용한 실패를 20건 잡으면서 "사실대로 알린다"를 매번 배너로 붙인 결과다.
+     하나하나는 옳은 결정이었고, 누적이 문제다.
+
+   원칙 — **끝난 것은 조용히, 막고 있는 것은 그대로.**
+     막는 신호(미수취·확인필요·차단)는 손대지 않는다. 낮출 것만 낮춘다.
+
+   ★ 위 규칙을 고치지 않고 파일 끝에서 덮어쓴다 —
+     되돌리기가 이 블록 삭제 한 번이고, 다른 사람이 위쪽을 고쳐도 충돌하지 않는다.
+   ★ 마크업을 건드리지 않으므로 기관별 링크 작업(②)이 화면을 다시 그려도 살아남는다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ① 배너를 3단으로 — 알림은 선으로, 주의는 옅게, 위험만 그대로
+     info 18 + ok 13 = 31곳이 조용해지고, 그만큼 warn·dg 가 드러난다 */
+.banner.info,
+.banner.ok{background:var(--white);border:1px solid var(--line);
+           border-left:3px solid var(--g-mint);padding:11px 14px;font-size:14.5px}
+/* ★ 색은 BI 토큰만 쓴다 (2026-09-03 · 임의 HEX 를 걷어냄).
+     다만 **본문과 액센트 선을 나눈다** — 흰 배경 대비를 재보니 이렇다:
+       326C #00ACA7  2.82:1  ❌ 본문 불가      340C #009465  3.87:1  △ 선·큰 글자만
+       335C #007963  5.36:1  ✅                568C #005B48  8.11:1  ✅
+     본문에 326C 를 쓰면 BI 는 지키는데 글이 안 읽힌다. 그래서
+     **본문은 어두운 주색(335C·568C), 선은 326C·340C** 로 나눠 쓴다.
+     활용비율 7(주색):3(보조) 원칙에도 이쪽이 맞다. */
+.banner.info{color:var(--g-deep);border-left-color:var(--g-mint)}        /* 568C 본문 · 326C 선 */
+.banner.ok{color:var(--g-primary-d);border-left-color:var(--g-primary)}  /* 335C 본문 · 340C 선 */
+.banner.info .bi,.banner.ok .bi{font-size:17px}
+.banner.warn{background:#fffaf0;border-color:#f0e2bd}
+/* .banner.dg 는 손대지 않는다 — 5곳뿐이고 전부 진짜 차단이다 */
+
+/* ② 끝난 항목의 무게를 낮춘다
+     지금은 수취완료 항목이 미수취 항목과 같은 크기로 자리를 차지한다.
+     담당자가 봐야 하는 건 '남은 것'인데 '끝난 것'이 화면의 절반을 쓴다.
+     ⚠️ 접지는 않는다 — 접으려면 마크업이 필요하고, 그건 층 2다. */
+.item-card.st-done{border-left-width:3px;background:#fcfdfc}
+.item-card.st-done .item-head b{font-weight:700}
+.item-card.st-done .item-meta{color:#7a8880}
+
+/* ③ 태그 채도 — 항목마다 2~3개씩 붙어 글자 밭이 된다.
+     끝난 상태만 낮춘다. 미수취(dg)·확인필요(warn)는 그대로 —
+     그게 담당자가 화면에서 찾아야 하는 신호다. */
+/* 배경은 브랜드색이 아니라 '표면' 이라 중성 회색을 그대로 둔다 — 글자만 BI 토큰으로 */
+.pill.ok{background:#eef4f1;color:var(--g-primary-d)}   /* 335C */
+.pill.neu{background:#f1f3f2;color:var(--muted)}
+
+/* ④ 그림자 — 카드가 73곳인데 전부 두 겹 그림자를 갖고 있으면 깊이가 정보가 아니다.
+     진짜 떠 있는 것(모달·토스트·통계 타일)에만 남기고 일반 카드는 한 겹으로. */
+.card{box-shadow:0 1px 2px rgba(0,60,40,.05)}
+
+/* ══════════════════════════════════════════════════════════════
+   [위계 정리 ②] 장식 아이콘을 숨긴다 (2026-09-03 연수)
+
+   배너 30곳·문서행마다 아이콘이 하나씩 붙어 있다. 색과 테두리가 이미
+   종류를 말하고 있으므로 아이콘은 같은 말을 한 번 더 하는 것이다.
+   ★ 다만 **막는 배너(warn·dg)의 아이콘은 남긴다** — 그건 장식이 아니라 신호다.
+     ①에서 세운 원칙 그대로: 끝난 것은 조용히, 막고 있는 것은 그대로.
+   ★ 마크업이 아니라 CSS 로 숨긴다 — 되돌리기가 한 줄이고 충돌이 없다.
+   ══════════════════════════════════════════════════════════════ */
+/* 배너 종류는 색과 테두리가 이미 말한다. 아이콘은 같은 말을 한 번 더 하는 것이라 전부 숨긴다.
+   ★ warn·dg 의 아이콘까지 숨기는 이유 — 그 자리에 붙은 것이 ⚠ 만이 아니라
+     🔁 🔍 🧾 처럼 제각각이라 '신호'로 읽히지 않았다. 심각도는 색이 말하게 둔다. */
+.banner .bi{display:none}
+.banner{gap:0}
+.doc-row .di{display:none}
+
+/* ══════════════════════════════════════════════════════════════
+   [브랜드 마크] 사이드바 심볼을 공식 마크로 (2026-09-03 연수)
+
+   ★ 🌱 은 브랜드 마크가 아니었습니다 — 자리만 채운 임시 이모지였고,
+     클래스명(.umbrella)이 이미 무엇이 와야 하는지 말하고 있었습니다.
+     초록우산의 심볼은 **초록 우산**입니다. 공식 파일에서 심볼만 잘라 씁니다.
+       assets/brand/umbrella-white.png  ← 공식 흰색본에서 심볼만 (어두운 배경용)
+       assets/brand/umbrella-color.png  ← 공식 컬러본에서 심볼만 (밝은 배경용)
+       assets/brand/logo-*.png          ← 워드마크까지 있는 전체 로고 (원본 그대로)
+   ⚠️ 색을 바꿔 만들지 않았습니다 — 흰색본은 공식 파일에서 가져온 것입니다.
+   ★ 흰 사각형 배경을 걷습니다 — 심볼이 이미 흰색이라 배경이 있으면 안 보입니다.
+   ══════════════════════════════════════════════════════════════ */
+/* ── 2026-09-12 선미 — 우산을 **뗐다.** 이 플랫폼은 아직 재단 공식이 아니라 초록우산 마크를 쓰기 어렵다.
+     나눔대장 자체 마크(common.js brandMark · 아직 후보, 팀 상의 후 확정)로 바꿨고 흰 타일은 다시 살렸다
+     — 마크가 진녹이라 진녹 사이드바 위에 타일 없이는 안 보인다. 우산 PNG 는 assets/brand/ 에 그대로 둔다. */
+
+/* ── 담당자 로그인 (2026-09-07 승희) ── */
+.login-wrap{display:flex;justify-content:center;padding:48px 16px}
+.login-card{width:100%;max-width:400px}
+.login-card input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:16px;box-sizing:border-box}
+.login-card .btn{width:100%;margin-top:4px}
+.login-err{color:var(--accent-pink);font-size:15px;margin:-4px 0 12px}
+.login-hint{color:var(--muted);margin-top:12px}
+.auth-name{font-size:14.5px;font-weight:700;margin-right:6px}
+
+/* ── 관리자 기본 통계 — 도넛 + 범례 (2026-09-10 연수) ────────────────
+   ★ 전에는 가로 막대였는데 실 데이터가 들어오자 막대가 화면을 가로질러
+     오른쪽 건수·비율이 잘렸다. 도넛은 폭을 안 먹는다.
+   ★ 넓으면 2단, 좁으면 1단 — 카드 최소폭 320px 기준으로 저절로 접힌다. */
+/* ⚠️ auto-fit 은 쓰지 않는다 — 폭에 따라 3열이 되면 카드 4장이 3+1 로 남아 어색하다.
+     넓으면 2열 고정(2×2), 좁으면 1열. */
+.stat-grid{display:grid;grid-template-columns:1fr;gap:0 12px}
+@media (min-width:880px){ .stat-grid{grid-template-columns:1fr 1fr} }
+.stat-grid > .card{margin-bottom:12px}
+.dn-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.dn-svg{width:132px;height:132px;flex:none}
+.dn-seg{transition:opacity .12s}
+.dn-wrap:hover .dn-seg{opacity:.45}
+.dn-wrap .dn-seg:hover{opacity:1}
+.dn-tot{font-size:28px;font-weight:700;fill:var(--ink)}
+.dn-cap{font-size:13px;fill:var(--muted)}
+.dn-legend{flex:1 1 190px;min-width:180px;display:grid;gap:7px}
+.dn-row{display:flex;align-items:center;gap:8px;font-size:15.5px;line-height:1.4}
+.dn-dot{width:10px;height:10px;border-radius:3px;flex:none}
+/* 이름은 남는 폭을 먹고, 길면 줄인다 — 숫자가 밀려 잘리지 않게 */
+.dn-name{flex:1 1 auto;min-width:0;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 숫자는 폭을 고정해 세로로 줄이 맞는다 · tnum 으로 자릿수가 흔들리지 않게 */
+.dn-n{flex:none;width:52px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.dn-p{flex:none;width:40px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ── 수취 축 / AI 축 분리 (2026-09-11 선미 · A안) ──
+   제목 줄 알약 = 수취 상태(회색·초록·빨강) · 왼쪽 띠 + 판정 상자 = AI 판정(초록·주황·청록).
+   ai-* 가 st-* 보다 뒤에 있어야 띠 색이 AI 축으로 덮인다. */
+.item-card.st-sub{border-left-color:var(--line);background:var(--white)}
+.chk.sub{border-color:var(--line);color:var(--muted)}
+.item-card.ai-ok{border-left-color:var(--ok)}
+.item-card.ai-warn{border-left-color:var(--warn);background:#fffdf5}
+.item-card.ai-hold{border-left-color:var(--info);background:#f3fbfb}
+.gate-ai{font-size:13.5px;font-weight:700;color:var(--warn);text-align:right}
+.gate-ai.done{color:var(--muted);font-weight:600}   /* 지적을 담당자가 다 처리했다 — 남은 일이 아니다 (2026-09-12) */
+.legend{display:inline-flex;gap:6px;margin-left:10px;vertical-align:middle;flex-wrap:wrap}
+
+/* ── 후원자 신청서 — 섹션 번호 · 동의 카드 (2026-09-11 승희 · 동료 테스트 UI 개선) ──
+   유형 4가지가 카드 수·순서가 조금씩 달라 번호는 그릴 때 센다(screen-donor.js sec()).
+   직접 적는 카드는 흰색, 읽고 체크만 하는 카드(확인 및 동의 · 개인정보 동의 · 국외 이전 · 법인 고지)는 연녹색. */
+.sec-n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--g-primary);color:#fff;font-size:14px;font-weight:800;flex:0 0 auto}
+.card.consent{background:#eef8f2;border-color:#bfe3cf}
+.card.consent .card-h{border-bottom-color:#d7ecdf}
+.card.consent .sec-n{background:var(--g-deep)}
+.card.consent .card-b label{background:#fff;border:1px solid #d7ecdf;border-radius:10px;padding:10px 12px}
+.card.consent.sub{background:#f4faf6;border-style:dashed}
+.consent-tag{margin-left:auto;color:var(--g-deep);background:#dff1e6;border-radius:999px;padding:2px 9px;font-weight:700}
+.slot-fmt{white-space:nowrap}
+
+/* ══════════════════════════════════════════════════════════════
+   모바일 보정 — 600px 이하에서만 (2026-09-13 선미 · 유진 폰 실주행 3장)
+   ★ PC 는 이 블록을 읽지 않는다. 마크업도 안 바꾼다 — 폰에서 글자가 잘리거나 화면을 벗어나던 자리만.
+     ① 후원자 폼 비고 — placeholder 35자가 폰 폭에 안 들어간다. placeholder 는 CSS 로 못 접으므로
+        같은 말을 .hint.m-only 로 칸 아래에 둔다(PC 는 display:none).
+     ② 건 상세 왼쪽 잘림 — 수취 요약 표(.recv-sum)가 4열 nowrap + 첫 열 140px 라 ~520px 가 되어
+        .content 가 옆으로 밀렸다. 여백을 줄이고, 그래도 넘치면 **카드 안에서만** 옆으로 구르게.
+     ③ 목록 세로 글자 — 7열 표가 390px 에 우겨져 한 글자씩 세로로 섰다. 표에 최소 폭을 주고
+        카드 안에서 옆으로 구르게 · 배지(.pill)는 줄바꿈 금지.
+   ⚠️ 표를 여기서 접거나 열을 숨기지 않는다 — 열 하나를 숨기면 "폰에서는 배분처가 안 보인다" 가 된다. */
+.m-only{display:none}
+@media(max-width:600px){
+  .m-only{display:block}
+  .content{padding:14px 12px 48px;overflow-x:hidden}                 /* 페이지 자체는 옆으로 안 밀린다 */
+  .page-head{margin-bottom:14px}.page-head h2{font-size:20px}.page-head p{font-size:14px}
+  .card-h{padding:12px 12px}.card-b{padding:14px 12px}
+  .card:has(>table),.card-b:has(>table){overflow-x:auto}             /* 표가 있는 카드만 — .tip 툴팁(절대배치)이 잘리지 않게 */
+  .card>table{min-width:640px}                                       /* ③ 후원건 목록 — 7열 */
+  th,td{padding:9px 8px}
+  .card>table td,.card>table th,.pill{white-space:nowrap}
+  .recv-sum{min-width:0}                                             /* ② 수취 요약 — 4열이 폰 폭에 들어가게 */
+  .recv-sum th,.recv-sum td{padding:8px 6px;font-size:13.5px}
+  .recv-sum th:first-child,.recv-sum td:first-child{padding-left:6px;min-width:0}
+  .stepbar .sb{flex-basis:calc(50% - 3px)}                            /* 진행 단계 6칸 — 2열 고정 */
+}
